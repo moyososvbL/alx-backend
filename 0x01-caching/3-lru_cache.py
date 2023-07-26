@@ -1,90 +1,45 @@
 #!/usr/bin/python3
-"""
-    BaseCache module
-"""
-
+""" Python caching systems """
 from base_caching import BaseCaching
+from collections import OrderedDict
 
 
 class LRUCache(BaseCaching):
-    """ LRUCache define a LRU algorithm to use cache
-
-      To use:
-      >>> my_cache = BasicCache()
-      >>> my_cache.print_cache()
-      Current cache:
-
-      >>> my_cache.put("A", "Hello")
-      >>> my_cache.print_cache()
-      A: Hello
-
-      Ex:
-      >>> my_cache.print_cache()
-      Current cache:
-      A: Hello
-      B: World
-      C: Holberton
-      D: School
-      >>> print(my_cache.get("B"))
-      World
-      >>> my_cache.put("E", "Battery")
-      DISCARD: A
-      >>> my_cache.print_cache()
-      Current cache:
-      B: World
-      C: Holberton
-      D: School
-      E: Battery
+    """ LRU caching system
+    Use of OrderedDict which keep order of insertion of keys
+    The order shows how recently they were used.
+    In the beginning is the least recently used and in the end,
+    the most recently used.
+    Any update OR query made to a key moves to the end (most recently used).
+    If anything is added, it is added at the end (most recently used/added).
+    All operations have O(1) time complexity.
     """
-
     def __init__(self):
-        """ Initiliaze
-        """
+        """ Initialize class instance. """
         super().__init__()
-        self.leastrecent = []
+        self.cache_data = OrderedDict()
 
     def put(self, key, item):
+        """ Add an item in the cache
+        First, add/ update the key by conventional methods.
+        And also move the key to the end to show that it was recently used.
+        But here we will also check if the length of our dictionary
+        has exceeded our capacity.
+        If so remove the first key (least recently used)
         """
-            modify cache data
-
-            Args:
-                key: of the dict
-                item: value of the key
-        """
-        if key or item is not None:
-            valuecache = self.get(key)
-            # Make a new
-            if valuecache is None:
-                if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
-                    keydel = self.leastrecent
-                    lendel = len(keydel) - 1
-                    del self.cache_data[keydel[lendel]]
-                    print("DISCARD: {}".format(self.leastrecent.pop()))
-            else:
-                del self.cache_data[key]
-
-            if key in self.leastrecent:
-                self.leastrecent.remove(key)
-                self.leastrecent.insert(0, key)
-            else:
-                self.leastrecent.insert(0, key)
-
+        if key and item:
             self.cache_data[key] = item
+            self.cache_data.move_to_end(key)
+            if len(self.cache_data) > BaseCaching.MAX_ITEMS:
+                discarded = self.cache_data.popitem(last=False)
+                print('DISCARD: {}'.format(discarded[0]))
 
     def get(self, key):
+        """ Get an item by key
+        Return the value of the key that is queried in O(1)
+        and return -1 if the key is not found.
+        And also move the key to the end to show that it was recently used
         """
-            modify cache data
-
-            Args:
-                key: of the dict
-
-            Return:
-                value of the key
-        """
-        valuecache = self.cache_data.get(key)
-
-        if valuecache:
-            self.leastrecent.remove(key)
-            self.leastrecent.insert(0, key)
-
-        return valuecache
+        if key in self.cache_data:
+            self.cache_data.move_to_end(key)
+            return self.cache_data[key]
